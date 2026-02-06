@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register – SahiDaam</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Create Account</h2>
+
+        <form id="registerForm">
+            <input
+                id="name"
+                placeholder="Full Name"
+            >
+
+            <input
+                id="email"
+                type="email"
+                placeholder="Email Address"
+                required
+            >
+
+            <input
+                id="username"
+                placeholder="Username"
+                required
+            >
+
+            <input
+                id="password"
+                type="password"
+                placeholder="Password (min 6 characters)"
+                required
+            >
+
+            <input
+                id="confirm_password"
+                type="password"
+                placeholder="Confirm Password"
+                required
+            >
+
+            <button type="submit" class="btn btn-primary">
+                Register
+            </button>
+        </form>
+
+        <p id="error" class="error-message"></p>
+        <p id="success" class="success-message"></p>
+
+        <p class="auth-footer">
+            Already have an account?
+            <a href="/login">Login</a>
+        </p>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("registerForm");
+    
+    if (!form) {
+        console.error("Register form not found");
+        return;
+    }
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const errorEl = document.getElementById("error");
+        const successEl = document.getElementById("success");
+        const submitBtn = form.querySelector("button[type='submit']");
+        
+        if (!submitBtn) {
+            console.error("Submit button not found");
+            return;
+        }
+
+        const originalText = submitBtn.textContent;
+
+        // Clear messages
+        if (errorEl) errorEl.textContent = "";
+        if (successEl) successEl.textContent = "";
+
+        // Get form values
+        const name = (document.getElementById("name")?.value || "").trim();
+        const email = (document.getElementById("email")?.value || "").trim();
+        const username = (document.getElementById("username")?.value || "").trim();
+        const password = document.getElementById("password")?.value || "";
+        const confirm_password = document.getElementById("confirm_password")?.value || "";
+
+        // Basic validation
+        if (!email.includes("@")) {
+            if (errorEl) errorEl.textContent = "Enter a valid email";
+            return;
+        }
+
+        if (username.length < 3) {
+            if (errorEl) errorEl.textContent = "Username must be at least 3 characters";
+            return;
+        }
+
+        if (password.length < 6) {
+            if (errorEl) errorEl.textContent = "Password must be at least 6 characters";
+            return;
+        }
+
+        if (password !== confirm_password) {
+            if (errorEl) errorEl.textContent = "Passwords do not match";
+            return;
+        }
+
+        // Disable button to prevent multiple clicks
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Registering...";
+
+        try {
+            const res = await fetch("/api/register", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                credentials: "include",
+                body: JSON.stringify({
+                    name,
+                    email,
+                    username,
+                    password,
+                    confirm_password
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                if (errorEl) errorEl.textContent = data.error || "Registration failed";
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                return;
+            }
+
+            if (successEl) successEl.textContent = "Account created! Redirecting...";
+            setTimeout(() => {
+                window.location.href = data.redirect || "/login";
+            }, 1500);
+
+        } catch (err) {
+            console.error("Registration error:", err);
+            if (errorEl) errorEl.textContent = "Network error. Try again.";
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
+});
+</script>
+
+</body>
+</html>

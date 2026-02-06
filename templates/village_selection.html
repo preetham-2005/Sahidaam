@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Village – SahiDaam</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+
+        <!-- Header -->
+        <h2>🏘 Select Your Village</h2>
+        <p class="auth-subtitle">
+            SahiDaam shows prices shared by people from your village.
+            Choose carefully to get accurate market data.
+        </p>
+
+        <!-- Form -->
+        <form id="villageForm" autocomplete="off">
+
+            <label class="form-label">Village Name</label>
+            <input
+                id="village"
+                placeholder="e.g. Rampur"
+                required
+            >
+
+            <label class="form-label">State (optional)</label>
+            <input
+                id="state"
+                placeholder="e.g. Telangana"
+            >
+
+            <button class="btn btn-primary btn-block">
+                Continue to Dashboard →
+            </button>
+        </form>
+
+        <!-- Error -->
+        <p id="error" class="error-message"></p>
+
+        <!-- Footer -->
+        <p class="auth-footer">
+            Can’t find your village?
+            <a href="#" onclick="addVillage()">Add it manually</a>
+        </p>
+
+    </div>
+</div>
+
+<script>
+const form = document.getElementById("villageForm");
+const error = document.getElementById("error");
+const village = document.getElementById("village");
+const state = document.getElementById("state");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    error.textContent = "";
+
+    const payload = {
+        village: village.value.trim(),
+        state: state.value.trim()
+    };
+
+    if (!payload.village) {
+        error.textContent = "Village name is required";
+        village.focus();
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/set-village", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            error.textContent = data.error || "Unable to save village";
+            return;
+        }
+
+        // Success → dashboard
+        window.location.href = data.redirect || "/dashboard";
+
+    } catch (err) {
+        error.textContent = "Network error. Please try again.";
+    }
+});
+
+function addVillage() {
+    const name = prompt("Enter your village name:");
+    if (name && name.trim().length > 0) {
+        village.value = name.trim();
+        village.focus();
+    }
+}
+</script>
+
+</body>
+</html>

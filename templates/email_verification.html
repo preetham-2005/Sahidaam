@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verified – SahiDaam</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Dark Mode Script -->
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const mode = body.classList.toggle("dark");
+            localStorage.setItem("theme", mode ? "dark" : "light");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem("theme") === "dark") {
+                document.body.classList.add("dark");
+            }
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- 🌙 Toggle -->
+<div class="theme-toggle">
+    <button onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
+</div>
+
+<div class="auth-container">
+    <div class="auth-card success-card">
+        <div class="success-icon">✅</div>
+        <h2>Email Verified</h2>
+        <p>Your account is now active. You can log in and start using SahiDaam.</p>
+
+        <a href="/login" class="btn btn-primary btn-block">Login</a>
+    </div>
+</div>
+
+</body>
+</html>

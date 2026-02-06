@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard – SahiDaam</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ✅ MAIN CSS (WAS MISSING) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Dashboard JS -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+</head>
+
+<body class="dashboard-body">
+
+<!-- ================= NAVBAR ================= -->
+<nav class="dashboard-nav">
+    <div class="nav-left">
+        <h3>🌾 SahiDaam</h3>
+        <span class="nav-subtitle">Village Market Intelligence</span>
+    </div>
+
+    <div class="nav-right">
+        <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
+        <button class="btn btn-text danger" onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<!-- ================= MAIN ================= -->
+<main class="dashboard-container">
+
+    <!-- ================= HEADER ================= -->
+    <section class="dashboard-header">
+        <!-- ✅ ID REQUIRED BY JS -->
+        <h2 id="welcomeMsg">Market Dashboard</h2>
+        <p>Welcome! Here’s what’s happening in your village market today.</p>
+    </section>
+
+    <!-- ================= STATS ================= -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <h4>📦 Items</h4>
+            <p id="itemsCount">0</p>
+        </div>
+        <div class="stat-card">
+            <h4>👥 Contributors</h4>
+            <p id="contributorsCount">0</p>
+        </div>
+        <div class="stat-card">
+            <h4>📝 Submissions</h4>
+            <p id="submissionsCount">0</p>
+        </div>
+        <div class="stat-card">
+            <h4>🏆 Your Score</h4>
+            <p id="scoreValue">0</p>
+        </div>
+    </section>
+
+    <!-- ================= QUICK ACTIONS ================= -->
+    <section class="dashboard-cards">
+        <a href="#prices" class="action-card">
+            <span>📊</span>
+            <h3>Live Prices</h3>
+            <p>View latest market prices</p>
+        </a>
+
+        <a href="#leaderboard" class="action-card">
+            <span>🏆</span>
+            <h3>Leaderboard</h3>
+            <p>Top contributors in your village</p>
+        </a>
+
+        <a href="#submit" class="action-card">
+            <span>➕</span>
+            <h3>Submit Price</h3>
+            <p>Share today’s prices</p>
+        </a>
+
+        <a href="#alerts" class="action-card">
+            <span>🔔</span>
+            <h3>Price Alerts</h3>
+            <p>Get notified on price changes</p>
+        </a>
+    </section>
+
+    <!-- ================= MESSAGES ================= -->
+    <div id="errorMessage" class="error-message" style="display:none;"></div>
+    <div id="successMessage" class="success-message" style="display:none;"></div>
+
+    <!-- ================= SUBMIT PRICE ================= -->
+    <section id="submit" class="dashboard-section">
+        <h3>➕ Submit Price</h3>
+        <form id="priceForm" class="price-form">
+            <div class="form-row">
+                <input
+                    type="text"
+                    id="itemInput"
+                    placeholder="Item (e.g., Rice, Wheat)"
+                    required
+                >
+                <input
+                    type="number"
+                    id="priceInput"
+                    placeholder="Price (₹)"
+                    step="0.01"
+                    required
+                >
+                <button type="submit" class="btn btn-primary">
+                    Submit
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- ================= LIVE PRICES ================= -->
+    <section id="prices" class="dashboard-section">
+        <h3>📊 Live Prices</h3>
+        <div id="pricesContainer" class="prices-list">
+            <p class="empty-msg">No prices submitted yet</p>
+        </div>
+    </section>
+
+    <!-- ================= LEADERBOARD ================= -->
+    <section id="leaderboard" class="dashboard-section">
+        <h3>🏆 Top Contributors</h3>
+        <div id="leaderboardContainer" class="leaderboard-list">
+            <p class="empty-msg">No contributions yet</p>
+        </div>
+    </section>
+
+</main>
+
+<!-- ================= INLINE SCRIPT (UNCHANGED LOGIC) ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    loadDashboardData();
+    loadPrices();
+    applySavedTheme();
+
+    const form = document.getElementById("priceForm");
+    if (form) form.addEventListener("submit", submitPrice);
+});
+
+async function loadDashboardData() {
+    try {
+        const res = await fetch("/api/dashboard-data", { credentials: "include" });
+        if (!res.ok) {
+            if (res.status === 401) window.location.href = "/login";
+            return;
+        }
+
+        const data = await res.json();
+
+        setText("itemsCount", data.items);
+        setText("contributorsCount", data.contributors);
+        setText("submissionsCount", data.submissions);
+        setText("scoreValue", data.score);
+
+        if (data.user) {
+            document.getElementById("welcomeMsg").textContent =
+                `Welcome ${data.user.name}! Market data from ${data.user.village} village.`;
+        }
+    } catch {
+        showError("Failed to load dashboard data");
+    }
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? 0;
+}
+
+async function submitPrice(e) {
+    e.preventDefault();
+
+    const item = itemInput.value.trim();
+    const price = parseFloat(priceInput.value);
+
+    if (!item || price <= 0) {
+        showError("Please enter valid item and price");
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/submit-price", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ item, price })
+        });
+
+        const data = await res.json();
+        if (!res.ok) return showError(data.error);
+
+        showSuccess("Price submitted successfully! ✅");
+        itemInput.value = "";
+        priceInput.value = "";
+
+        loadDashboardData();
+        loadPrices();
+    } catch {
+        showError("Network error");
+    }
+}
+
+async function loadPrices() {
+    try {
+        const res = await fetch("/api/dashboard-data", { credentials: "include" });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        pricesContainer.innerHTML = data.submissions > 0
+            ? `<p><strong>${data.submissions}</strong> prices recorded</p>`
+            : `<p class="empty-msg">No prices submitted yet</p>`;
+    } catch {}
+}
+
+function showError(msg) {
+    errorMessage.textContent = msg;
+    errorMessage.style.display = "block";
+    setTimeout(() => errorMessage.style.display = "none", 4000);
+}
+
+function showSuccess(msg) {
+    successMessage.textContent = msg;
+    successMessage.style.display = "block";
+    setTimeout(() => successMessage.style.display = "none", 4000);
+}
+
+async function logout() {
+    await fetch("/api/logout", { method: "POST", credentials: "include" });
+    window.location.href = "/login";
+}
+
+function refreshData() {
+    loadDashboardData();
+    loadPrices();
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+}
+
+function applySavedTheme() {
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark");
+    }
+}
+</script>
+
+</body>
+</html>

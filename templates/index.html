@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SahiDaam – Village Market Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SahiDaam helps villages share real-time market prices and trade smarter.">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="hero-header">
+    <nav class="nav-bar">
+        <h2>🌾 SahiDaam</h2>
+
+        <div class="nav-actions">
+            <!-- 🌙 THEME TOGGLE -->
+            <button class="btn btn-text" onclick="toggleTheme()" id="themeBtn">🌙</button>
+
+            <a href="/login" class="btn btn-text">Login</a>
+            <a href="/register" class="btn btn-primary">Get Started</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1>Village Market Price Intelligence</h1>
+        <p>
+            Know the real prices in your village.  
+            Share, compare, and trade smarter with your community.
+        </p>
+        <a href="/register" class="btn btn-primary btn-large">
+            Start Using SahiDaam
+        </a>
+    </section>
+</header>
+
+<!-- ================= FEATURES ================= -->
+<section class="features">
+    <h2>Why SahiDaam?</h2>
+
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>📊 Real-Time Prices</h3>
+            <p>Live prices submitted by trusted villagers.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>🏘 Village-Based Data</h3>
+            <p>See only prices relevant to your village.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>🏆 Trust & Leaderboards</h3>
+            <p>Earn trust scores and badges for honest sharing.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>🔔 Alerts</h3>
+            <p>Get notified when prices rise or fall.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>🛡 Fraud Detection</h3>
+            <p>Suspicious activity is automatically detected.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>📱 Mobile Ready</h3>
+            <p>Designed for future Android & iOS apps.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section class="how-it-works">
+    <h2>How It Works</h2>
+
+    <div class="steps">
+        <div class="step">
+            <span>1</span>
+            <p>Create an account</p>
+        </div>
+        <div class="step">
+            <span>2</span>
+            <p>Select your village</p>
+        </div>
+        <div class="step">
+            <span>3</span>
+            <p>View & submit prices</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer class="footer">
+    <p>© 2026 SahiDaam – Empowering Rural Markets</p>
+</footer>
+
+<!-- ================= THEME SCRIPT ================= -->
+<script>
+    function applyTheme() {
+        const isDark = localStorage.getItem("theme") === "dark";
+        document.body.classList.toggle("dark", isDark);
+        document.getElementById("themeBtn").textContent = isDark ? "☀️" : "🌙";
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "light" : "dark");
+        applyTheme();
+    }
+
+    // Apply theme on load
+    document.addEventListener("DOMContentLoaded", applyTheme);
+</script>
+
+</body>
+</html>
