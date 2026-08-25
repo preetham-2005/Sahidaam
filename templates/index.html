@@ -4,118 +4,166 @@
     <meta charset="UTF-8">
     <title>SahiDaam – Village Market Intelligence</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SahiDaam helps villages share real-time market prices and trade smarter.">
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="description" content="SahiDaam helps rural communities share and verify real-time crop market prices — know the truth, trade smarter.">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.0">
 </head>
 
-<body>
+<body class="landing-body">
 
-<!-- ================= HEADER ================= -->
-<header class="hero-header">
-    <nav class="nav-bar">
-        <h2>🌾 SahiDaam</h2>
+<!-- ===== NAV ===== -->
+<nav class="landing-nav">
+    <div class="landing-logo">
+        <div class="logo-icon">🌾</div>
+        SahiDaam
+    </div>
+    <div class="nav-links">
+        <button class="btn btn-text" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+        <a href="/login" class="btn btn-secondary">Login</a>
+        <a href="/register" class="btn btn-primary">Get Started Free</a>
+    </div>
+</nav>
 
-        <div class="nav-actions">
-            <!-- 🌙 THEME TOGGLE -->
-            <button class="btn btn-text" onclick="toggleTheme()" id="themeBtn">🌙</button>
-
-            <a href="/login" class="btn btn-text">Login</a>
-            <a href="/register" class="btn btn-primary">Get Started</a>
-        </div>
-    </nav>
-
-    <section class="hero">
-        <h1>Village Market Price Intelligence</h1>
-        <p>
-            Know the real prices in your village.  
-            Share, compare, and trade smarter with your community.
+<!-- ===== HERO ===== -->
+<section class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+        <div class="hero-badge">🌱 Built for rural communities</div>
+        <h1 class="hero-title">
+            Village Market Prices,<br>
+            <span class="gradient-text">Made Transparent</span>
+        </h1>
+        <p class="hero-subtitle">
+            Know the real prices in your village. Share, verify, and compare daily crop rates with your community — powered by trust.
         </p>
+        <div class="hero-actions">
+            <a href="/register" class="btn btn-primary btn-large">
+                🚀 Start for Free
+            </a>
+            <a href="/login" class="btn btn-secondary btn-large">
+                Login to Dashboard
+            </a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-num">Live</div>
+                <div class="hero-stat-label">Price Feed</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">OTP</div>
+                <div class="hero-stat-label">Verified Login</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">Free</div>
+                <div class="hero-stat-label">Always</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="features-section">
+    <div class="features-header">
+        <div class="section-label">✦ Features</div>
+        <h2 class="section-title">Everything your village needs to trade smarter</h2>
+        <p class="section-subtitle">SahiDaam puts transparent, community-verified market data in every farmer's hands.</p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Real-Time Price Feed</h3>
+            <p>Crowdsourced crop prices submitted daily by trusted community members — filtered by your village.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🏘️</div>
+            <h3>Hyperlocal Dashboards</h3>
+            <p>See only prices from your registered village. Compare against neighboring mandis automatically.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3>Community Verification</h3>
+            <p>Every price entry is peer-verified with upvotes/downvotes. Suspicious entries are flagged automatically.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🏆</div>
+            <h3>Trust Scores & Badges</h3>
+            <p>Earn trust points for honest contributions. Unlock Gold, Silver and Bronze badges on the leaderboard.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h3>Market Trend Analytics</h3>
+            <p>Visualize average price charts and spot patterns before you sell. Data-driven decisions for every farmer.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h3>Secure Gmail OTP Login</h3>
+            <p>Register with your email and verify via a one-time code. No passwords shared, fully secure access.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="howitworks-section">
+    <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+        <div class="section-label">✦ How It Works</div>
+        <h2 class="section-title">Up and running in 3 steps</h2>
+        <p class="section-subtitle">Simple enough for any smartphone user in a rural village.</p>
+    </div>
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <h3>Create an Account</h3>
+            <p>Register with your name and email. Verify via a 6-digit OTP code sent to your Gmail inbox.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <h3>Select Your Village</h3>
+            <p>Choose your village and state. You'll only see prices from your own community by default.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <h3>Share & Verify Prices</h3>
+            <p>Submit daily crop rates and verify others' submissions. Build trust and see real market data instantly.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+    <div class="cta-card">
+        <div class="hero-badge" style="margin: 0 auto 20px;">🌾 Join for free today</div>
+        <h2 class="section-title">Ready to know the real price?</h2>
+        <p>Join your village's SahiDaam community. No subscriptions, no hidden fees.</p>
         <a href="/register" class="btn btn-primary btn-large">
-            Start Using SahiDaam
+            Create Your Free Account →
         </a>
-    </section>
-</header>
-
-<!-- ================= FEATURES ================= -->
-<section class="features">
-    <h2>Why SahiDaam?</h2>
-
-    <div class="feature-grid">
-        <div class="feature-card">
-            <h3>📊 Real-Time Prices</h3>
-            <p>Live prices submitted by trusted villagers.</p>
-        </div>
-
-        <div class="feature-card">
-            <h3>🏘 Village-Based Data</h3>
-            <p>See only prices relevant to your village.</p>
-        </div>
-
-        <div class="feature-card">
-            <h3>🏆 Trust & Leaderboards</h3>
-            <p>Earn trust scores and badges for honest sharing.</p>
-        </div>
-
-        <div class="feature-card">
-            <h3>🔔 Alerts</h3>
-            <p>Get notified when prices rise or fall.</p>
-        </div>
-
-        <div class="feature-card">
-            <h3>🛡 Fraud Detection</h3>
-            <p>Suspicious activity is automatically detected.</p>
-        </div>
-
-        <div class="feature-card">
-            <h3>📱 Mobile Ready</h3>
-            <p>Designed for future Android & iOS apps.</p>
-        </div>
     </div>
 </section>
 
-<!-- ================= HOW IT WORKS ================= -->
-<section class="how-it-works">
-    <h2>How It Works</h2>
-
-    <div class="steps">
-        <div class="step">
-            <span>1</span>
-            <p>Create an account</p>
-        </div>
-        <div class="step">
-            <span>2</span>
-            <p>Select your village</p>
-        </div>
-        <div class="step">
-            <span>3</span>
-            <p>View & submit prices</p>
-        </div>
+<!-- ===== FOOTER ===== -->
+<footer class="landing-footer">
+    <div class="footer-brand">
+        <div class="logo-icon" style="width:28px;height:28px;font-size:0.9rem;">🌾</div>
+        SahiDaam
     </div>
-</section>
-
-<!-- ================= FOOTER ================= -->
-<footer class="footer">
-    <p>© 2026 SahiDaam – Empowering Rural Markets</p>
+    <p class="footer-copy">© 2026 SahiDaam · Empowering Rural Markets · Built with ❤️ for Bharat</p>
 </footer>
 
-<!-- ================= THEME SCRIPT ================= -->
 <script>
-    function applyTheme() {
-        const isDark = localStorage.getItem("theme") === "dark";
-        document.body.classList.toggle("dark", isDark);
-        document.getElementById("themeBtn").textContent = isDark ? "☀️" : "🌙";
-    }
-
-    function toggleTheme() {
-        const isDark = document.body.classList.contains("dark");
-        localStorage.setItem("theme", isDark ? "light" : "dark");
-        applyTheme();
-    }
-
-    // Apply theme on load
-    document.addEventListener("DOMContentLoaded", applyTheme);
+function getTheme() {
+    return localStorage.getItem('theme') || 'dark';
+}
+function applyTheme() {
+    const t = getTheme();
+    document.body.classList.toggle('light', t === 'light');
+    document.getElementById('themeBtn').textContent = t === 'light' ? '🌙' : '☀️';
+}
+function toggleTheme() {
+    localStorage.setItem('theme', getTheme() === 'dark' ? 'light' : 'dark');
+    applyTheme();
+}
+document.addEventListener('DOMContentLoaded', applyTheme);
 </script>
 
 </body>

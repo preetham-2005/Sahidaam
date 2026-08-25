@@ -4,253 +4,487 @@
     <meta charset="UTF-8">
     <title>Dashboard – SahiDaam</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SahiDaam Village Market Price Intelligence Dashboard">
 
-    <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js & Leaflet Map CSS/JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 
-    <!-- ✅ MAIN CSS (WAS MISSING) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-    <!-- Dashboard JS -->
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.3">
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2.3" defer></script>
 </head>
 
 <body class="dashboard-body">
 
-<!-- ================= NAVBAR ================= -->
+<!-- ===== NAVBAR ===== -->
 <nav class="dashboard-nav">
-    <div class="nav-left">
-        <h3>🌾 SahiDaam</h3>
-        <span class="nav-subtitle">Village Market Intelligence</span>
+    <div class="nav-brand">
+        <div class="logo-icon" style="width:32px;height:32px;font-size:1rem;">🌾</div>
+        <div>
+            <div class="nav-brand-name">SahiDaam</div>
+            <span class="nav-subtitle" data-i18n="tagline">Village Market Intelligence</span>
+        </div>
     </div>
 
     <div class="nav-right">
-        <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
-        <button class="btn btn-text danger" onclick="logout()">Logout</button>
+        <!-- Indic Language Selector -->
+        <select id="langSelect" class="lang-selector" onchange="changeLanguage(this.value)">
+            <option value="en">🇬🇧 English</option>
+            <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+            <option value="te">🇮🇳 తెలుగు (Telugu)</option>
+        </select>
+
+        <button class="btn btn-text" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+        <button class="btn btn-secondary" onclick="refreshData()" title="Refresh">🔄 <span data-i18n="refresh">Refresh</span></button>
+        <button class="btn danger" onclick="logout()" data-i18n="logout">Logout</button>
     </div>
 </nav>
 
-<!-- ================= MAIN ================= -->
+<!-- ===== 1. LIVE MARKET TICKER MARQUEE ===== -->
+<div class="market-ticker-wrap">
+    <div class="ticker-badge-live">LIVE MANDI</div>
+    <div class="ticker-track" id="tickerTrack">
+        <div class="ticker-item"><span>🌾 Rice: ₹42.00/kg</span> <span class="ticker-pill-up">▲ +5.2%</span></div>
+        <div class="ticker-item"><span>🍅 Tomato: ₹28.00/kg</span> <span class="ticker-pill-down">▼ -1.8%</span></div>
+        <div class="ticker-item"><span>🧅 Onion: ₹35.00/kg</span> <span class="ticker-pill-up">▲ +8.0%</span></div>
+        <div class="ticker-item"><span>🌱 Cotton: ₹7,200/qtl</span> <span class="ticker-pill-up">▲ +3.4%</span></div>
+        <div class="ticker-item"><span>🌽 Maize: ₹22.50/kg</span> <span class="ticker-pill-down">▼ -0.9%</span></div>
+        <div class="ticker-item"><span>🥛 Milk: ₹58.00/L</span> <span class="ticker-pill-up">≈ Stable</span></div>
+    </div>
+</div>
+
+<!-- ===== MAIN CONTAINER ===== -->
 <main class="dashboard-container">
 
-    <!-- ================= HEADER ================= -->
-    <section class="dashboard-header">
-        <!-- ✅ ID REQUIRED BY JS -->
-        <h2 id="welcomeMsg">Market Dashboard</h2>
-        <p>Welcome! Here’s what’s happening in your village market today.</p>
+    <!-- ===== 2. HYPERLOCAL AGRI-WEATHER WIDGET ===== -->
+    <div class="weather-hero-card" id="weatherWidget">
+        <div class="weather-info-left">
+            <div class="weather-temp-badge" id="weatherTemp">29°C</div>
+            <div>
+                <div style="font-weight:700;font-size:1.05rem;" id="weatherCond">Partly Cloudy ⛅</div>
+                <div class="weather-meta-sub">
+                    <span id="weatherVillage">Rampur</span> · Humidity: <strong id="weatherHumidity">62%</strong> · Wind: <strong id="weatherWind">12 km/h</strong>
+                </div>
+            </div>
+        </div>
+        <div class="weather-advisory-pill" id="weatherAdvisory">
+            🌾 <strong>Agri-Advisory:</strong> Ideal weather conditions for harvesting & open-air grain drying.
+        </div>
+    </div>
+
+    <!-- ===== 3. FARMER LEVEL & GAMIFICATION CARD ===== -->
+    <div class="farmer-gamification-card" id="gamificationCard">
+        <div>
+            <div class="farmer-level-badge">
+                <span id="farmerLevelIcon">👨‍🌾</span> <span id="farmerLevelTitle">Level 2 · Trusted Kisan</span>
+            </div>
+            <div style="font-size:0.82rem;color:var(--text-3);margin-top:2px;">
+                Verified Village Contributor · <strong id="farmerXpTotal" style="color:var(--emerald);">480 XP</strong>
+            </div>
+        </div>
+
+        <div class="xp-bar-container">
+            <div class="xp-bar-labels">
+                <span>XP Progress</span>
+                <span id="xpProgressText">180 / 250 XP to Level 3</span>
+            </div>
+            <div class="xp-bar-track">
+                <div class="xp-bar-fill" id="xpBarFill" style="width: 72%;"></div>
+            </div>
+        </div>
+
+        <div class="badges-row" id="farmerBadgesRow">
+            <span class="badge-pill active">🌱 Early Member</span>
+            <span class="badge-pill active">🛡️ Trusted 75+</span>
+            <span class="badge-pill active">📸 Photo Pro</span>
+        </div>
+    </div>
+
+    <!-- Header & Share -->
+    <section class="dashboard-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h2 id="welcomeMsg" data-i18n="marketDashboard">Market Dashboard</h2>
+            <p data-i18n="dashboardDesc">Real-time crowdsourced rates, AI price advisory, and community verification.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button type="button" class="btn-whatsapp" onclick="shareMarketSummaryWhatsApp()">
+                <span>📲</span> <span data-i18n="shareWhatsApp">Share Today's Rates on WhatsApp</span>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="openMandiSlipModal()">
+                <span>📄</span> <span>Print / Download Mandi Slip</span>
+            </button>
+        </div>
     </section>
 
-    <!-- ================= STATS ================= -->
+    <!-- Stats Grid -->
     <section class="stats-grid">
         <div class="stat-card">
-            <h4>📦 Items</h4>
+            <h4 data-i18n="itemsTracked">📦 Items Tracked</h4>
             <p id="itemsCount">0</p>
         </div>
         <div class="stat-card">
-            <h4>👥 Contributors</h4>
+            <h4 data-i18n="contributors">👥 Contributors</h4>
             <p id="contributorsCount">0</p>
         </div>
         <div class="stat-card">
-            <h4>📝 Submissions</h4>
+            <h4 data-i18n="submissions">📝 Submissions</h4>
             <p id="submissionsCount">0</p>
         </div>
         <div class="stat-card">
-            <h4>🏆 Your Score</h4>
+            <h4 data-i18n="trustScore">🛡️ Trust Score</h4>
             <p id="scoreValue">0</p>
         </div>
     </section>
 
-    <!-- ================= QUICK ACTIONS ================= -->
+    <!-- Quick Navigation -->
     <section class="dashboard-cards">
-        <a href="#prices" class="action-card">
-            <span>📊</span>
-            <h3>Live Prices</h3>
-            <p>View latest market prices</p>
+        <a href="#deals-board" class="action-card">
+            <span>🤝</span>
+            <h3>Kisan Deal Board</h3>
+            <p>Direct Buyer-Seller Marketplace</p>
         </a>
-
-        <a href="#leaderboard" class="action-card">
-            <span>🏆</span>
-            <h3>Leaderboard</h3>
-            <p>Top contributors in your village</p>
+        <a href="#ai-advisor" class="action-card">
+            <span>🤖</span>
+            <h3 data-i18n="aiAdvisor">AI Price Advisor</h3>
+            <p data-i18n="aiAdvisorDesc">Best time to sell & 7-day forecast</p>
         </a>
-
+        <a href="#mandi-map-section" class="action-card">
+            <span>🗺️</span>
+            <h3>Mandi GPS Map</h3>
+            <p>Price heatmap & distances</p>
+        </a>
         <a href="#submit" class="action-card">
             <span>➕</span>
-            <h3>Submit Price</h3>
-            <p>Share today’s prices</p>
-        </a>
-
-        <a href="#alerts" class="action-card">
-            <span>🔔</span>
-            <h3>Price Alerts</h3>
-            <p>Get notified on price changes</p>
+            <h3 data-i18n="submitPrice">Submit Price</h3>
+            <p data-i18n="submitPriceDesc">Voice input 🎙️ & photo receipts</p>
         </a>
     </section>
 
-    <!-- ================= MESSAGES ================= -->
-    <div id="errorMessage" class="error-message" style="display:none;"></div>
-    <div id="successMessage" class="success-message" style="display:none;"></div>
+    <!-- Feedback Messages -->
+    <div id="errorMessage" class="error-message" style="margin-bottom:16px;"></div>
+    <div id="successMessage" class="success-message" style="margin-bottom:16px;"></div>
 
-    <!-- ================= SUBMIT PRICE ================= -->
+    <!-- ===== 4. KISAN DEAL BOARD (BUYER-SELLER MARKETPLACE) ===== -->
+    <section id="deals-board" class="dashboard-section">
+        <div class="section-header">
+            <div>
+                <h3>🤝 <span>Kisan Deal Board (Direct Buyer-Seller Market)</span></h3>
+                <p style="color:var(--text-3);font-size:0.85rem;margin-top:2px;">
+                    Buy & sell harvest lots directly without middlemen commissions.
+                </p>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="openCreateDealModal()">
+                <span>➕</span> <span>Post Harvest for Sale</span>
+            </button>
+        </div>
+
+        <div id="dealsContainer" class="deals-grid">
+            <p class="empty-msg">No active harvest listings yet. Be the first farmer to list your harvest!</p>
+        </div>
+    </section>
+
+    <!-- ===== AI Market Advisory & Sell/Hold Predictions ===== -->
+    <section id="ai-advisor" class="dashboard-section">
+        <div class="section-header">
+            <h3>🤖 <span data-i18n="aiAdvisorTitle">AI Smart Market Advisor & Price Forecast</span></h3>
+            <span class="meta-tag" style="background:rgba(59,130,246,0.1);color:#60a5fa;border-color:rgba(59,130,246,0.3);">
+                ⚡ Powered by Market Momentum Models
+            </span>
+        </div>
+        <div id="aiAdvisoryContainer" class="ai-advisory-grid">
+            <p class="empty-msg" data-i18n="loadingAi">Analyzing local mandi data and calculating recommendations...</p>
+        </div>
+    </section>
+
+    <!-- ===== 5. INTERACTIVE MANDI GPS MAP ===== -->
+    <section id="mandi-map-section" class="dashboard-section">
+        <div class="section-header">
+            <h3>🗺️ <span>Nearby Mandis GPS & Price Heatmap</span></h3>
+            <span class="meta-tag" style="background:var(--emerald-dim);color:var(--emerald-bright);border-color:var(--emerald-border);">
+                📍 Radius: 25 km
+            </span>
+        </div>
+        <div id="mandiMap" class="mandi-map-container"></div>
+    </section>
+
+    <!-- ===== 6. SMART PRICE WATCH & ALERTS ===== -->
+    <section id="alerts-section" class="dashboard-section">
+        <div class="section-header">
+            <div>
+                <h3>🔔 <span>Smart Price Watch & Target Alerts</span></h3>
+                <p style="color:var(--text-3);font-size:0.85rem;margin-top:2px;">
+                    Get notified when prices hit your target selling point.
+                </p>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="openCreateAlertModal()">
+                <span>➕</span> <span>Set Price Alert</span>
+            </button>
+        </div>
+        <div id="alertsContainer" class="alerts-list">
+            <p class="empty-msg">No active price alerts set. Click 'Set Price Alert' to watch a crop.</p>
+        </div>
+    </section>
+
+    <!-- ===== Submit Price with Voice & Photo Upload ===== -->
     <section id="submit" class="dashboard-section">
-        <h3>➕ Submit Price</h3>
+        <div class="section-header">
+            <h3>➕ <span data-i18n="submitCropPrice">Submit Daily Crop Price</span></h3>
+            <button type="button" class="btn-voice" id="voiceBtn" onclick="toggleVoiceInput()">
+                <span>🎙️</span> <span id="voiceBtnText" data-i18n="voiceInput">Speak to Auto-Fill (Voice)</span>
+            </button>
+        </div>
+
+        <div id="voiceTranscript" class="voice-transcript-banner">
+            🎙️ <strong data-i18n="listening">Listening:</strong> <span id="transcriptText">Say "Tomato 25 rupees Rampur Mandi"...</span>
+        </div>
+
         <form id="priceForm" class="price-form">
-            <div class="form-row">
-                <input
-                    type="text"
-                    id="itemInput"
-                    placeholder="Item (e.g., Rice, Wheat)"
-                    required
-                >
-                <input
-                    type="number"
-                    id="priceInput"
-                    placeholder="Price (₹)"
-                    step="0.01"
-                    required
-                >
-                <button type="submit" class="btn btn-primary">
-                    Submit
+            <div class="form-grid-inputs">
+                <div class="form-group-input">
+                    <label for="itemInput" data-i18n="cropName">🌾 Crop Name</label>
+                    <input type="text" id="itemInput" placeholder="e.g. Rice, Tomato, Onion, Cotton" required>
+                </div>
+                <div class="form-group-input">
+                    <label for="categoryInput" data-i18n="category">📁 Category</label>
+                    <select id="categoryInput" class="form-select" required>
+                        <option value="Grains" data-i18n="catGrains">🌾 Grains & Pulses</option>
+                        <option value="Vegetables" data-i18n="catVeg">🍅 Vegetables</option>
+                        <option value="Fruits" data-i18n="catFruits">🍎 Fruits</option>
+                        <option value="Dairy" data-i18n="catDairy">🥛 Dairy & Poultry</option>
+                        <option value="Others" data-i18n="catOthers">📦 Others</option>
+                    </select>
+                </div>
+                <div class="form-group-input">
+                    <label for="priceInput" data-i18n="pricePerKg">💰 Price (₹ per kg / quintal)</label>
+                    <input type="number" id="priceInput" placeholder="e.g. 45.00" step="0.01" min="0" required>
+                </div>
+                <div class="form-group-input">
+                    <label for="locationInput" data-i18n="locationMandi">📍 Purchase Location / Mandi</label>
+                    <input type="text" id="locationInput" placeholder="e.g. Rampur Mandi, Yard No. 3">
+                </div>
+
+                <!-- Crop Photo / Receipt Attachment -->
+                <div class="form-group-input span-2">
+                    <label data-i18n="attachPhoto">📸 Attach Crop Photo or Mandi Slip (Optional — +10 Trust Score)</label>
+                    <div class="photo-upload-wrap">
+                        <label class="file-upload-btn" for="photoInput">
+                            <span>📷</span> <span id="uploadLabelText" data-i18n="choosePhoto">Choose Photo / Receipt</span>
+                        </label>
+                        <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(event)">
+                        <img id="photoPreview" class="photo-preview-thumb" alt="Preview">
+                        <button type="button" class="btn-text" id="clearPhotoBtn" onclick="clearPhoto()" style="display:none;font-size:0.8rem;color:var(--danger);" data-i18n="removePhoto">
+                            ✕ Remove Photo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group-input span-2">
+                    <label for="commentInput" data-i18n="remarks">💬 Remarks / Quality Notes (Optional)</label>
+                    <input type="text" id="commentInput" placeholder="e.g. Grade A harvest, retail mandi rate">
+                </div>
+            </div>
+            <div class="form-submit-row">
+                <button type="submit" class="btn btn-primary" id="submitBtn" data-i18n="submitPriceBtn">
+                    Submit Price Details →
                 </button>
             </div>
         </form>
     </section>
 
-    <!-- ================= LIVE PRICES ================= -->
+    <!-- ===== Live Market Feed ===== -->
     <section id="prices" class="dashboard-section">
-        <h3>📊 Live Prices</h3>
+        <div class="section-header">
+            <h3>📊 <span data-i18n="liveFeedTitle">Live Village Market Feed</span></h3>
+            <div class="category-filters">
+                <button class="filter-btn active" onclick="filterPrices('All')" data-i18n="allCrops">All Crops</button>
+                <button class="filter-btn" onclick="filterPrices('Grains')" data-i18n="catGrains">🌾 Grains</button>
+                <button class="filter-btn" onclick="filterPrices('Vegetables')" data-i18n="catVeg">🍅 Vegetables</button>
+                <button class="filter-btn" onclick="filterPrices('Fruits')" data-i18n="catFruits">🍎 Fruits</button>
+                <button class="filter-btn" onclick="filterPrices('Dairy')" data-i18n="catDairy">🥛 Dairy</button>
+            </div>
+        </div>
         <div id="pricesContainer" class="prices-list">
-            <p class="empty-msg">No prices submitted yet</p>
+            <p class="empty-msg" data-i18n="noPrices">No prices submitted yet. Be the first to share today's rates!</p>
         </div>
     </section>
 
-    <!-- ================= LEADERBOARD ================= -->
+    <!-- ===== Analytics & Village Comparisons ===== -->
+    <section id="analytics" class="dashboard-section">
+        <h3>📈 <span data-i18n="marketIntelligence">Market Analytics & Multi-Village Comparison</span></h3>
+        <div class="analytics-grid">
+            <div class="chart-wrapper">
+                <h4 data-i18n="priceTrendsTitle">Local Price Trends (Average Rates)</h4>
+                <div class="chart-canvas-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+            <div class="comparison-wrapper">
+                <h4 data-i18n="villageGridTitle">Surrounding Village Price Grid</h4>
+                <div class="table-wrapper">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="thCrop">Crop</th>
+                                <th data-i18n="thVillage">Village</th>
+                                <th data-i18n="thAvgPrice">Avg Price</th>
+                                <th data-i18n="thVsYours">vs. Yours</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <tr>
+                                <td colspan="4" class="empty-msg" data-i18n="noCompData">Submit crop prices to see comparisons!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Leaderboard ===== -->
     <section id="leaderboard" class="dashboard-section">
-        <h3>🏆 Top Contributors</h3>
+        <div class="section-header">
+            <h3>🏆 <span data-i18n="trustedContributors">Top Trusted Contributors</span></h3>
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" onclick="switchLeaderboardTab('weekly')" data-i18n="weekly">Weekly</button>
+                <button class="tab-btn" onclick="switchLeaderboardTab('monthly')" data-i18n="monthly">Monthly</button>
+                <button class="tab-btn" onclick="switchLeaderboardTab('global')" data-i18n="global">Global</button>
+            </div>
+        </div>
         <div id="leaderboardContainer" class="leaderboard-list">
-            <p class="empty-msg">No contributions yet</p>
+            <p class="empty-msg" data-i18n="noContributors">No contributions yet</p>
         </div>
     </section>
 
 </main>
 
-<!-- ================= INLINE SCRIPT (UNCHANGED LOGIC) ================= -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    loadDashboardData();
-    loadPrices();
-    applySavedTheme();
+<!-- ===== MODAL: CREATE KISAN DEAL ===== -->
+<div class="google-modal-overlay" id="createDealModal">
+    <div class="google-modal-card">
+        <button type="button" class="google-modal-close" onclick="closeCreateDealModal()">✕</button>
+        <h3 style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:6px;">🤝 List Harvest on Deal Board</h3>
+        <p style="color:var(--text-3);font-size:0.85rem;margin-bottom:18px;">Direct buyer contact via WhatsApp & Phone</p>
+        
+        <form id="createDealForm" onsubmit="handleCreateDealSubmit(event)" style="display:flex;flex-direction:column;gap:12px;">
+            <div class="form-group">
+                <label>Crop / Commodity Name</label>
+                <input type="text" id="dealCrop" placeholder="e.g. Sona Masoori Rice, Tomato" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Quantity Available</label>
+                <input type="text" id="dealQuantity" placeholder="e.g. 50 Bags (25 Quintals), 200 Crates" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Price per Unit (₹)</label>
+                <input type="number" id="dealPrice" placeholder="e.g. 38.00 per kg / 1900 per bag" step="0.01" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Contact Phone / WhatsApp Number</label>
+                <input type="tel" id="dealPhone" value="8639682415" placeholder="8639682415" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Farm / Mandi Location Details</label>
+                <input type="text" id="dealLocation" placeholder="e.g. Near Rampur Panchayat Hall" class="form-input">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">
+                Publish Harvest Deal →
+            </button>
+        </form>
+    </div>
+</div>
 
-    const form = document.getElementById("priceForm");
-    if (form) form.addEventListener("submit", submitPrice);
-});
+<!-- ===== MODAL: CREATE PRICE ALERT ===== -->
+<div class="google-modal-overlay" id="createAlertModal">
+    <div class="google-modal-card">
+        <button type="button" class="google-modal-close" onclick="closeCreateAlertModal()">✕</button>
+        <h3 style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:6px;">🔔 Set Smart Price Watch</h3>
+        <p style="color:var(--text-3);font-size:0.85rem;margin-bottom:18px;">Get notified when market prices hit your target</p>
+        
+        <form id="createAlertForm" onsubmit="handleCreateAlertSubmit(event)" style="display:flex;flex-direction:column;gap:14px;">
+            <div class="form-group">
+                <label>Crop Name</label>
+                <input type="text" id="alertCrop" placeholder="e.g. Onion, Tomato, Cotton" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Target Price (₹ per kg/unit)</label>
+                <input type="number" id="alertPrice" placeholder="e.g. 35.00" step="0.01" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Trigger Condition</label>
+                <select id="alertCondition" class="form-select">
+                    <option value="above">When price rises ABOVE target (Sell Alert) 📈</option>
+                    <option value="below">When price drops BELOW target (Buy Alert) 📉</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">
+                Activate Price Alert →
+            </button>
+        </form>
+    </div>
+</div>
 
-async function loadDashboardData() {
-    try {
-        const res = await fetch("/api/dashboard-data", { credentials: "include" });
-        if (!res.ok) {
-            if (res.status === 401) window.location.href = "/login";
-            return;
-        }
+<!-- ===== MODAL: 7. OFFICIAL MANDI SLIP GENERATOR ===== -->
+<div class="google-modal-overlay" id="mandiSlipModal">
+    <div class="mandi-slip-modal-card" id="mandiSlipPrintArea">
+        <button type="button" class="google-modal-close" onclick="closeMandiSlipModal()" style="color:#0f172a;">✕</button>
+        
+        <div class="mandi-slip-header">
+            <div style="font-size:1.8rem;">🌾</div>
+            <div class="mandi-slip-title">SAHIDAAM MANDI BULLETIN</div>
+            <div style="font-size:0.85rem;color:#059669;font-weight:700;" id="slipVillageName">RAMPUR VILLAGE AGRICULTURE YARD</div>
+            <div style="font-size:0.78rem;color:#64748b;" id="slipDateStr">Date: 25 August 2026</div>
+        </div>
 
-        const data = await res.json();
+        <table class="mandi-slip-table">
+            <thead>
+                <tr>
+                    <th>Crop Commodity</th>
+                    <th>Category</th>
+                    <th>Rate / Unit</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="slipTableBody">
+                <tr><td>Tomato</td><td>Vegetables</td><td>₹28.00/kg</td><td>Verified ✓</td></tr>
+                <tr><td>Rice (Sona Masoori)</td><td>Grains</td><td>₹42.00/kg</td><td>Verified ✓</td></tr>
+                <tr><td>Onion</td><td>Vegetables</td><td>₹35.00/kg</td><td>Verified ✓</td></tr>
+            </tbody>
+        </table>
 
-        setText("itemsCount", data.items);
-        setText("contributorsCount", data.contributors);
-        setText("submissionsCount", data.submissions);
-        setText("scoreValue", data.score);
+        <div class="mandi-slip-footer">
+            <div>
+                <div>Verified via SahiDaam Crowdsourced Intelligence</div>
+                <div style="font-size:0.7rem;">Official Village Market Certificate</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-family:monospace;font-weight:700;color:#047857;">[SEAL VERIFIED]</div>
+                <div style="font-size:0.7rem;">sahidaam.onrender.com</div>
+            </div>
+        </div>
 
-        if (data.user) {
-            document.getElementById("welcomeMsg").textContent =
-                `Welcome ${data.user.name}! Market data from ${data.user.village} village.`;
-        }
-    } catch {
-        showError("Failed to load dashboard data");
-    }
-}
+        <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;" class="no-print">
+            <button type="button" class="btn btn-secondary" onclick="window.print()" style="color:#0f172a;border-color:#cbd5e1;">
+                🖨️ Print Slip
+            </button>
+            <button type="button" class="btn btn-primary" onclick="closeMandiSlipModal()">
+                Done
+            </button>
+        </div>
+    </div>
+</div>
 
-function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value ?? 0;
-}
+<!-- Lightbox Modal for Photo Verification -->
+<div class="photo-modal-overlay" id="photoModal" onclick="closePhotoModal()">
+    <img id="photoModalImg" class="photo-modal-img" src="" alt="Crop Proof">
+</div>
 
-async function submitPrice(e) {
-    e.preventDefault();
-
-    const item = itemInput.value.trim();
-    const price = parseFloat(priceInput.value);
-
-    if (!item || price <= 0) {
-        showError("Please enter valid item and price");
-        return;
-    }
-
-    try {
-        const res = await fetch("/api/submit-price", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ item, price })
-        });
-
-        const data = await res.json();
-        if (!res.ok) return showError(data.error);
-
-        showSuccess("Price submitted successfully! ✅");
-        itemInput.value = "";
-        priceInput.value = "";
-
-        loadDashboardData();
-        loadPrices();
-    } catch {
-        showError("Network error");
-    }
-}
-
-async function loadPrices() {
-    try {
-        const res = await fetch("/api/dashboard-data", { credentials: "include" });
-        if (!res.ok) return;
-
-        const data = await res.json();
-        pricesContainer.innerHTML = data.submissions > 0
-            ? `<p><strong>${data.submissions}</strong> prices recorded</p>`
-            : `<p class="empty-msg">No prices submitted yet</p>`;
-    } catch {}
-}
-
-function showError(msg) {
-    errorMessage.textContent = msg;
-    errorMessage.style.display = "block";
-    setTimeout(() => errorMessage.style.display = "none", 4000);
-}
-
-function showSuccess(msg) {
-    successMessage.textContent = msg;
-    successMessage.style.display = "block";
-    setTimeout(() => successMessage.style.display = "none", 4000);
-}
-
-async function logout() {
-    await fetch("/api/logout", { method: "POST", credentials: "include" });
-    window.location.href = "/login";
-}
-
-function refreshData() {
-    loadDashboardData();
-    loadPrices();
-}
-
-function toggleTheme() {
-    document.body.classList.toggle("dark");
-}
-
-function applySavedTheme() {
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark");
-    }
-}
-</script>
+<footer class="footer">
+    © 2026 SahiDaam · Empowering Rural Bharat via Crowdsourced Pricing Intelligence, AI Analytics & Kisan Deal Board
+</footer>
 
 </body>
 </html>

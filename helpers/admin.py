@@ -3,7 +3,7 @@
 from flask import Blueprint, render_template, redirect, url_for, jsonify, request, session
 from extensions import db
 from models.user import User
-from models.price import Price
+from models.price import PriceEntry
 from helpers.auth import login_required
 
 admin_bp = Blueprint(
@@ -42,7 +42,7 @@ def admin_dashboard():
         "total_users": User.query.count(),
         "verified_users": User.query.filter_by(is_verified=True).count(),
         "blocked_users": User.query.filter_by(is_blocked=True).count(),
-        "total_prices": Price.query.count()
+        "total_prices": PriceEntry.query.count()
     }
 
     return render_template(
@@ -118,5 +118,5 @@ def admin_health():
     return jsonify({
         "status": "ok",
         "users": User.query.count(),
-        "prices": Price.query.count()
+        "prices": PriceEntry.query.count()
     })

@@ -55,6 +55,7 @@ def get_global_leaderboard(limit=10):
         db.session.query(
             User.id,
             User.name,
+            User.username,
             User.trust_score,
             func.count(PriceEntry.id).label("contributions")
         )
@@ -72,6 +73,7 @@ def get_global_leaderboard(limit=10):
         {
             "rank": index + 1,
             "name": row.name,
+            "username": row.username,
             "trust_score": round(row.trust_score, 2),
             "contributions": row.contributions,
             "badge": calculate_badge(row.trust_score, row.contributions)
@@ -88,6 +90,7 @@ def get_paginated_leaderboard(village, page=1, per_page=10):
         db.session.query(
             User.id,
             User.name,
+            User.username,
             User.trust_score,
             func.count(PriceEntry.id).label("contributions")
         )
@@ -119,6 +122,7 @@ def get_paginated_leaderboard(village, page=1, per_page=10):
         "data": [
             {
                 "name": row.name,
+                "username": row.username,
                 "trust_score": round(row.trust_score, 2),
                 "contributions": row.contributions,
                 "badge": calculate_badge(row.trust_score, row.contributions)

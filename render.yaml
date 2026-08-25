@@ -55,3 +55,7 @@ services:
 
       - key: MAIL_PASSWORD
         sync: false   # set in Render UI
+
+databases:
+  - name: sahidaam-db
+    plan: free

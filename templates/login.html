@@ -4,163 +4,465 @@
     <meta charset="UTF-8">
     <title>Login – SahiDaam</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Login to SahiDaam">
-
-    <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="description" content="Login to your SahiDaam village market account">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.1">
+    {% if google_client_id %}
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    {% endif %}
 </head>
 
-<body>
+<body class="auth-body">
 
-<!-- ================= AUTH CONTAINER ================= -->
-<div class="auth-container">
+<button class="auth-theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
 
-    <!-- Dark mode toggle -->
-    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
-
+<div class="auth-wrapper">
     <div class="auth-card">
-        <h1>🌾 SahiDaam</h1>
-        <p class="auth-subtitle">Sign in to your account</p>
 
-        <form id="loginForm" class="auth-form">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    placeholder="Enter your username"
-                    required
-                >
+        <!-- Logo -->
+        <div class="auth-logo">
+            <div class="logo-icon" style="width:36px;height:36px;">🌾</div>
+            SahiDaam
+        </div>
+
+        <h2 class="auth-card-title" style="margin-top:12px;margin-bottom:4px;">Welcome back</h2>
+        <p class="auth-subtitle">Sign in to access your village market prices</p>
+
+        <!-- Continue with Google Button -->
+        <button type="button" class="btn-google" id="googleLoginBtn" onclick="handleGoogleSignIn()">
+            <svg class="google-icon-svg" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            Continue with Google
+        </button>
+
+        <div class="auth-divider">or sign in with credentials</div>
+
+        <!-- Auth Tabs -->
+        <div class="auth-tabs">
+            <button class="tab-btn active" id="tabPassword" onclick="switchTab('password')">Password</button>
+            <button class="tab-btn" id="tabEmail" onclick="switchTab('email')">Email OTP</button>
+        </div>
+
+        <!-- === Password Login Panel === -->
+        <div id="panelPassword">
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username or Email</label>
+                    <input id="username" type="text" placeholder="e.g. preetham or user@gmail.com" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                    Sign In →
+                </button>
+            </form>
+        </div>
+
+        <!-- === Email OTP Request Panel === -->
+        <div id="panelEmail" style="display:none;">
+            <form id="emailRequestForm" class="auth-form">
+                <div class="form-group">
+                    <label for="emailInput">Registered Email Address</label>
+                    <input id="emailInput" type="email" placeholder="e.g. yourname@gmail.com" required autocomplete="email">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="sendOtpBtn">
+                    Send Verification OTP
+                </button>
+            </form>
+        </div>
+
+        <!-- === Email OTP Verify Panel === -->
+        <div id="panelVerify" style="display:none;">
+            <p class="auth-subtitle" style="margin-bottom: 20px;">
+                Enter 6-digit code for <strong id="sentEmailDisplay" style="color:var(--emerald);"></strong>
+            </p>
+            <form id="emailVerifyForm" class="auth-form">
+                <div class="form-group">
+                    <label for="otpInput">6-Digit OTP Code</label>
+                    <input id="otpInput" type="text" class="otp-input" placeholder="000000" maxlength="6" required autocomplete="one-time-code">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="verifyOtpBtn">
+                    Verify & Access Dashboard →
+                </button>
+            </form>
+            <div style="text-align: center; margin-top: 14px;">
+                <button type="button" class="btn-text" onclick="switchTab('email')" style="font-size: 0.85rem;">
+                    ← Back / Resend Code
+                </button>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    placeholder="Enter your password"
-                    required
-                >
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block">
-                Login
-            </button>
-        </form>
-
+        <!-- Feedback Messages -->
         <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        <div id="devBanner" class="dev-banner" style="display:none;"></div>
 
         <div class="auth-footer">
-            <p>
-                Don’t have an account?
-                <a href="/register">Register here</a>
-            </p>
+            <p>Don't have an account? <a href="/register">Create one free</a></p>
         </div>
     </div>
 </div>
 
-<!-- ================= SCRIPT ================= -->
+<!-- Google Account Picker Modal (Instant One-Click Google Login) -->
+<div class="google-modal-overlay" id="googleModal">
+    <div class="google-modal-card">
+        <button type="button" class="google-modal-close" onclick="closeGoogleModal()">✕</button>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <svg class="google-icon-svg" viewBox="0 0 24 24" style="width:24px;height:24px;">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <h3 style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.2rem;">Sign in with Google</h3>
+        </div>
+        <p style="color:var(--text-2);font-size:0.88rem;margin-bottom:20px;">
+            Choose a Google account or enter your Gmail address to sign in instantly without passwords:
+        </p>
+        
+        <div id="googleAccountsList">
+            <div class="google-account-item" onclick="submitGoogleLogin('preetham.user@gmail.com', 'Preetham')">
+                <div class="google-account-avatar">P</div>
+                <div>
+                    <div style="font-weight:700;font-size:0.92rem;">Preetham</div>
+                    <div style="font-size:0.78rem;color:var(--text-3);">preetham.user@gmail.com</div>
+                </div>
+            </div>
+            <div class="google-account-item" onclick="submitGoogleLogin('farmer.ramesh@gmail.com', 'Ramesh Farmer')">
+                <div class="google-account-avatar" style="background:linear-gradient(135deg,#00c896,#00a87d);">R</div>
+                <div>
+                    <div style="font-weight:700;font-size:0.92rem;">Ramesh (Kisan)</div>
+                    <div style="font-size:0.78rem;color:var(--text-3);">farmer.ramesh@gmail.com</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:16px;">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">
+                Or enter any Gmail address:
+            </label>
+            <div style="display:flex;gap:8px;">
+                <input type="email" id="customGoogleEmail" placeholder="yourname@gmail.com" class="form-input" style="flex:1;">
+                <button type="button" class="btn btn-primary" onclick="submitCustomGoogleEmail()">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // ================= THEME =================
-    function applyTheme() {
-        const isDark = localStorage.getItem("theme") === "dark";
-        document.body.classList.toggle("dark", isDark);
-        document.getElementById("themeBtn").textContent = isDark ? "☀️" : "🌙";
+const GOOGLE_CLIENT_ID = "{{ google_client_id or '' }}";
+let pendingEmail = '';
+let currentDevOtp = '';
+
+// ===== THEME =====
+function getTheme() { return localStorage.getItem('theme') || 'light'; }
+function applyTheme() {
+    const t = getTheme();
+    document.body.classList.toggle('dark', t === 'dark');
+    document.getElementById('themeBtn').textContent = t === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+    localStorage.setItem('theme', getTheme() === 'dark' ? 'light' : 'dark');
+    applyTheme();
+}
+document.addEventListener('DOMContentLoaded', () => {
+    applyTheme();
+
+    // Check if returning from unverified attempt
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('unverified') === 'true' && params.get('email')) {
+        pendingEmail = params.get('email');
+        document.getElementById('sentEmailDisplay').textContent = pendingEmail;
+        switchTab('email');
+        showVerifyPanel();
+        if (params.get('dev_otp')) showDevBanner(params.get('dev_otp'));
     }
 
-    function toggleTheme() {
-        const isDark = document.body.classList.contains("dark");
-        localStorage.setItem("theme", isDark ? "light" : "dark");
-        applyTheme();
+    // Initialize Google Identity Services if client ID is provided
+    if (GOOGLE_CLIENT_ID && window.google) {
+        try {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleGsiResponse
+            });
+        } catch(e) {
+            console.log("GSI init info:", e);
+        }
     }
+});
 
-    document.addEventListener("DOMContentLoaded", applyTheme);
+// ===== GOOGLE SIGN IN =====
+function handleGoogleSignIn() {
+    clearMessages();
+    if (GOOGLE_CLIENT_ID && window.google) {
+        try {
+            google.accounts.id.prompt((notification) => {
+                if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                    openGoogleModal();
+                }
+            });
+            return;
+        } catch (e) {
+            openGoogleModal();
+        }
+    } else {
+        openGoogleModal();
+    }
+}
 
-    // ================= LOGIN =================
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
+function openGoogleModal() {
+    document.getElementById('googleModal').classList.add('active');
+}
+function closeGoogleModal() {
+    document.getElementById('googleModal').classList.remove('active');
+}
 
-        const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value.trim();
-        const errorBox = document.getElementById("errorMessage");
-        const submitBtn = document.querySelector("button[type='submit']");
+async function submitGoogleLogin(email, name, credential = null) {
+    closeGoogleModal();
+    clearMessages();
+    showSuccess('Authenticating with Google...');
 
-        errorBox.textContent = "";
+    try {
+        const res = await fetch('/api/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email, name, credential })
+        });
+        const data = await res.json();
 
-        if (!username || !password) {
-            errorBox.textContent = "Username and password required";
+        if (!res.ok) {
+            showError(data.error || 'Google authentication failed');
             return;
         }
 
-        // Disable button to prevent multiple clicks
-        submitBtn.disabled = true;
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = "Logging in...";
+        showSuccess('Welcome ' + (data.user?.name || email) + '! Redirecting...');
+        setTimeout(() => window.location.href = data.redirect || '/start', 800);
+    } catch (err) {
+        showError('Network error connecting to Google Auth: ' + err.message);
+    }
+}
 
-        try {
-            console.log("Starting login request...");
-            console.log("Username:", username);
-            
-            const payload = JSON.stringify({ username, password });
-            console.log("Payload:", payload);
-            
-            const res = await fetch("/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: payload
-            });
+function submitCustomGoogleEmail() {
+    const email = document.getElementById('customGoogleEmail').value.trim();
+    if (!email || !email.includes('@')) {
+        alert('Please enter a valid Gmail / email address');
+        return;
+    }
+    const name = email.split('@')[0];
+    submitGoogleLogin(email, name);
+}
 
-            console.log("Response received");
-            console.log("Response status:", res.status);
-            console.log("Response ok:", res.ok);
-            
-            let data;
-            try {
-                data = await res.json();
-                console.log("Parsed JSON data:", data);
-            } catch (parseErr) {
-                console.error("JSON parse error:", parseErr);
-                console.log("Response text:", await res.text());
-                errorBox.textContent = "Error parsing response";
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-                return;
-            }
+function handleGoogleGsiResponse(response) {
+    if (response && response.credential) {
+        submitGoogleLogin('', '', response.credential);
+    }
+}
 
-            if (!res.ok) {
-                console.log("Login failed:", data.error);
-                errorBox.textContent = data.error || "Login failed";
-                errorBox.style.display = "block";
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-                return;
-            }
-
-            console.log("Login successful!");
-            console.log("Redirect URL:", data.redirect);
-            
-            // Force redirect
-            if (data.redirect) {
-                console.log("Redirecting to:", data.redirect);
-                window.location.href = data.redirect;
-            } else {
-                console.log("Redirecting to /start");
-                window.location.href = "/start";
-            }
-
-        } catch (err) {
-            console.error("Fetch error:", err);
-            console.error("Error message:", err.message);
-            errorBox.textContent = "Network error: " + err.message;
-            errorBox.style.display = "block";
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-        }
+// ===== TAB SWITCHING =====
+function switchTab(mode) {
+    clearMessages();
+    ['password','email','verify'].forEach(p => {
+        document.getElementById('panel' + capitalize(p)).style.display = 'none';
     });
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+    if (mode === 'password') {
+        document.getElementById('panelPassword').style.display = 'block';
+        document.getElementById('tabPassword').classList.add('active');
+    } else {
+        document.getElementById('panelEmail').style.display = 'block';
+        document.getElementById('tabEmail').classList.add('active');
+    }
+}
+
+function showVerifyPanel() {
+    document.getElementById('panelEmail').style.display = 'none';
+    document.getElementById('panelPassword').style.display = 'none';
+    document.getElementById('panelVerify').style.display = 'block';
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ===== MESSAGES & DEV OTP =====
+function clearMessages() {
+    setMsg('errorMessage', '', false);
+    setMsg('successMessage', '', false);
+    document.getElementById('devBanner').style.display = 'none';
+}
+
+function setMsg(id, text, show) {
+    const el = document.getElementById(id);
+    el.innerHTML = text;
+    el.style.display = show ? 'block' : 'none';
+}
+
+function showError(msg) { setMsg('errorMessage', msg, true); setMsg('successMessage', '', false); }
+function showSuccess(msg) { setMsg('successMessage', msg, true); setMsg('errorMessage', '', false); }
+
+function showDevBanner(otp) {
+    currentDevOtp = otp;
+    const el = document.getElementById('devBanner');
+    el.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div>
+                ⚡ <strong>Verification OTP:</strong> 
+                <span style="font-size:1.15rem;letter-spacing:3px;font-family:monospace;font-weight:800;color:var(--emerald-bright);">${otp}</span>
+            </div>
+            <button type="button" class="btn-autofill" onclick="autoFillAndVerify('${otp}')">
+                ✨ Auto-Fill & Verify
+            </button>
+        </div>
+    `;
+    el.style.display = 'block';
+}
+
+function autoFillAndVerify(otp) {
+    const input = document.getElementById('otpInput');
+    if (input) {
+        input.value = otp;
+        document.getElementById('emailVerifyForm').dispatchEvent(new Event('submit'));
+    }
+}
+
+// ===== PASSWORD LOGIN =====
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearMessages();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('loginBtn');
+
+    if (!username || !password) return showError('Username and password required');
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            if (data.unverified && data.email) {
+                pendingEmail = data.email;
+                document.getElementById('sentEmailDisplay').textContent = pendingEmail;
+                showVerifyPanel();
+                showError('Your account email is unverified. Please enter the verification OTP.');
+                if (data.dev_otp) showDevBanner(data.dev_otp);
+                btn.disabled = false;
+                btn.textContent = 'Sign In →';
+                return;
+            }
+            showError(data.error || 'Login failed');
+            btn.disabled = false;
+            btn.textContent = 'Sign In →';
+            return;
+        }
+
+        showSuccess('Login successful! Redirecting...');
+        setTimeout(() => window.location.href = data.redirect || '/start', 800);
+    } catch (err) {
+        showError('Network error: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Sign In →';
+    }
+});
+
+// ===== EMAIL OTP REQUEST =====
+document.getElementById('emailRequestForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearMessages();
+    const email = document.getElementById('emailInput').value.trim();
+    const btn = document.getElementById('sendOtpBtn');
+
+    if (!email) return showError('Email is required');
+
+    btn.disabled = true;
+    btn.textContent = 'Sending OTP...';
+
+    try {
+        const res = await fetch('/api/login/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            showError(data.error || 'Failed to send OTP');
+            btn.disabled = false;
+            btn.textContent = 'Send Verification OTP';
+            return;
+        }
+
+        pendingEmail = email;
+        document.getElementById('sentEmailDisplay').textContent = email;
+        showVerifyPanel();
+
+        if (data.email_sent) {
+            showSuccess('✅ OTP sent to your Gmail inbox! (Check spam folder if needed)');
+        } else {
+            showSuccess('OTP generated successfully!');
+        }
+
+        if (data.dev_otp) {
+            showDevBanner(data.dev_otp);
+        }
+    } catch (err) {
+        showError('Network error: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Send Verification OTP';
+    }
+});
+
+// ===== EMAIL OTP VERIFY =====
+document.getElementById('emailVerifyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearMessages();
+    const otp = document.getElementById('otpInput').value.trim();
+    const btn = document.getElementById('verifyOtpBtn');
+
+    if (otp.length !== 6) return showError('Please enter the 6-digit OTP code');
+
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    try {
+        const res = await fetch('/api/login/email/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email: pendingEmail, otp })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            showError(data.error || 'Invalid or expired OTP code');
+            btn.disabled = false;
+            btn.textContent = 'Verify & Access Dashboard →';
+            return;
+        }
+
+        showSuccess('Verified successfully! Redirecting...');
+        setTimeout(() => window.location.href = data.redirect || '/start', 800);
+    } catch (err) {
+        showError('Network error: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Verify & Access Dashboard →';
+    }
+});
 </script>
 
 </body>

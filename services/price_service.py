@@ -1,15 +1,14 @@
-from models.price import Price
-from models import db
+from models.price import PriceEntry
+from extensions import db
 
 def submit_price(user, data):
-    entry = Price(
+    entry = PriceEntry(
         user_id=user.id,
         village=user.village,
         item_name=data["item"],
-        price=float(data["price"]),
-        unit=data.get("unit", "per kg")
+        price=float(data["price"])
     )
     db.session.add(entry)
-    user.trust_score += 5
+    user.trust_score = min(user.trust_score + 5, 100)
     db.session.commit()
     return entry

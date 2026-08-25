@@ -2,112 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Select Village – SahiDaam</title>
+    <title>Select Your Village – SahiDaam</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.0">
 </head>
 
-<body>
+<body class="auth-body">
 
-<div class="auth-container">
+<button class="auth-theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+
+<div class="auth-wrapper">
     <div class="auth-card">
 
+        <!-- Logo -->
+        <div class="auth-logo">
+            <div class="logo-icon" style="width:36px;height:36px;">🌾</div>
+            SahiDaam
+        </div>
+
         <!-- Header -->
-        <h2>🏘 Select Your Village</h2>
+        <h2 class="auth-card-title" style="margin-top:20px;margin-bottom:4px;">Select Your Village</h2>
         <p class="auth-subtitle">
-            SahiDaam shows prices shared by people from your village.
-            Choose carefully to get accurate market data.
+            SahiDaam shows prices shared by farmers from your village. Choose carefully for accurate market data.
         </p>
 
         <!-- Form -->
-        <form id="villageForm" autocomplete="off">
-
-            <label class="form-label">Village Name</label>
-            <input
-                id="village"
-                placeholder="e.g. Rampur"
-                required
-            >
-
-            <label class="form-label">State (optional)</label>
-            <input
-                id="state"
-                placeholder="e.g. Telangana"
-            >
-
-            <button class="btn btn-primary btn-block">
+        <form id="villageForm" class="auth-form" autocomplete="off">
+            <div class="form-group">
+                <label for="village">Village Name</label>
+                <input id="village" type="text" placeholder="e.g. Rampur, Nandyal" required>
+            </div>
+            <div class="form-group">
+                <label for="state">State <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+                <input id="state" type="text" placeholder="e.g. Telangana, Andhra Pradesh">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="continueBtn">
                 Continue to Dashboard →
             </button>
         </form>
 
-        <!-- Error -->
-        <p id="error" class="error-message"></p>
+        <div id="error" class="error-message"></div>
 
-        <!-- Footer -->
-        <p class="auth-footer">
-            Can’t find your village?
-            <a href="#" onclick="addVillage()">Add it manually</a>
-        </p>
-
+        <div class="auth-footer">
+            <p>Can't find your village? Just type it in — it'll be created.</p>
+        </div>
     </div>
 </div>
 
 <script>
-const form = document.getElementById("villageForm");
-const error = document.getElementById("error");
-const village = document.getElementById("village");
-const state = document.getElementById("state");
+function getTheme() { return localStorage.getItem('theme') || 'dark'; }
+function applyTheme() {
+    const t = getTheme();
+    document.body.classList.toggle('light', t === 'light');
+    document.getElementById('themeBtn').textContent = t === 'light' ? '🌙' : '☀️';
+}
+function toggleTheme() {
+    localStorage.setItem('theme', getTheme() === 'dark' ? 'light' : 'dark');
+    applyTheme();
+}
+document.addEventListener('DOMContentLoaded', applyTheme);
 
-form.addEventListener("submit", async (e) => {
+document.getElementById('villageForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    error.textContent = "";
+    const errorEl = document.getElementById('error');
+    const btn = document.getElementById('continueBtn');
+    errorEl.style.display = 'none';
 
-    const payload = {
-        village: village.value.trim(),
-        state: state.value.trim()
-    };
+    const village = document.getElementById('village').value.trim();
+    const state = document.getElementById('state').value.trim();
 
-    if (!payload.village) {
-        error.textContent = "Village name is required";
-        village.focus();
+    if (!village) {
+        errorEl.textContent = 'Please enter your village name';
+        errorEl.style.display = 'block';
+        document.getElementById('village').focus();
         return;
     }
 
-    try {
-        const res = await fetch("/api/set-village", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(payload)
-        });
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
 
+    try {
+        const res = await fetch('/api/set-village', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ village, state })
+        });
         const data = await res.json();
 
         if (!res.ok) {
-            error.textContent = data.error || "Unable to save village";
+            errorEl.textContent = data.error || 'Unable to save village';
+            errorEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Continue to Dashboard →';
             return;
         }
 
-        // Success → dashboard
-        window.location.href = data.redirect || "/dashboard";
-
+        window.location.href = data.redirect || '/dashboard';
     } catch (err) {
-        error.textContent = "Network error. Please try again.";
+        errorEl.textContent = 'Network error. Please try again.';
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Continue to Dashboard →';
     }
 });
-
-function addVillage() {
-    const name = prompt("Enter your village name:");
-    if (name && name.trim().length > 0) {
-        village.value = name.trim();
-        village.focus();
-    }
-}
 </script>
 
 </body>

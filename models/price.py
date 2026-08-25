@@ -16,6 +16,13 @@ class PriceEntry(db.Model):
     village = db.Column(db.String(120), nullable=False)
     item_name = db.Column(db.String(120), nullable=False)
     price = db.Column(db.Float, nullable=False)
+    item_category = db.Column(db.String(50), nullable=False, default="Grains")
+    purchase_location = db.Column(db.String(120), nullable=True)
+    comment = db.Column(db.String(255), nullable=True)
+    image_url = db.Column(db.String(255), nullable=True)  # Crop / receipt photo
+
+    upvotes = db.Column(db.Integer, default=0)
+    downvotes = db.Column(db.Integer, default=0)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
