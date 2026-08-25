@@ -2,7 +2,9 @@ Flask
 Flask-SQLAlchemy
 Flask-Session
 Flask-Mail
+Flask-JWT-Extended
 python-dotenv
 Werkzeug
 gunicorn
 psycopg2-binary
+requests

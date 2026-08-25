@@ -3,18 +3,11 @@ services:
     name: sahidaam
     runtime: python
     plan: free
-    region: singapore
 
-    buildCommand: |
-      pip install -r requirements.txt
-
-    startCommand: |
-      gunicorn app:app --bind 0.0.0.0:$PORT --workers 2
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
 
     envVars:
-      # -------------------------
-      # Flask
-      # -------------------------
       - key: FLASK_ENV
         value: production
 
@@ -24,23 +17,14 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"
 
-      # -------------------------
-      # Sessions
-      # -------------------------
       - key: SESSION_TYPE
         value: filesystem
 
-      # -------------------------
-      # Database (PostgreSQL)
-      # -------------------------
       - key: DATABASE_URL
         fromDatabase:
           name: sahidaam-db
           property: connectionString
 
-      # -------------------------
-      # Email (OTP / verification)
-      # -------------------------
       - key: MAIL_SERVER
         value: smtp.gmail.com
 
@@ -51,10 +35,10 @@ services:
         value: "true"
 
       - key: MAIL_USERNAME
-        sync: false   # set in Render UI
+        sync: false
 
       - key: MAIL_PASSWORD
-        sync: false   # set in Render UI
+        sync: false
 
 databases:
   - name: sahidaam-db
